@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redeem / Order - Home Focus 2026</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    /* Reuse styles from page-checkin/header for consistency */
+    /* ... (Root variables are defined in header.html, so no need to redefine if header is included) ... */
+
+    .container {
+      max-width: 800px; /* Match width of checkin page */
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    /* Tabs System - Consistent with page-checkin */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .tab-btn {
+      padding: 12px 25px;
+      border: none;
+      background: #e2e8f0;
+      border-radius: 30px;
+      font-family: 'Prompt';
+      cursor: pointer;
+      font-size: 16px;
+      color: #64748b;
+      transition: 0.3s;
+    }
+    .tab-btn.active {
+      background: var(--primary); /* Uses var from header */
+      color: white;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
+    
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Card & Form Styles */
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border: 1px solid #f1f5f9;
+      text-align: center; /* Center content like in checkin scan tab */
+    }
+    
+    h3 {
+      font-family: 'Prompt';
+      color: var(--primary);
+      margin-top: 0;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      text-align: left; /* Headers usually left-aligned */
+    }
+
+    /* Scanner UI - Consistent with page-checkin */
+    .scanner-ui {
+        padding: 20px;
+    }
+    .scanner-box {
+        width: 100%;
+        max-width: 400px;
+        height: 300px;
+        background: #000;
+        margin: 0 auto;
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Form specific styles for Order tab */
+    .form-group { margin-bottom: 15px; text-align: left; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+    input[type="text"], input[type="number"] {
+      width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px;
+      font-family: 'Sarabun'; font-size: 15px; outline: none; box-sizing: border-box;
+    }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
+
+    /* Action Buttons for Order */
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .btn-action {
+        padding: 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background: white;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: 'Prompt';
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-action:hover {
+        border-color: var(--primary);
+        background: #eff6ff;
+    }
+    .btn-action i {
+        font-size: 24px;
+        color: var(--primary);
+    }
+    .btn-action span {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .btn-action small {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    /* Summary Modal/Section */
+    #order-summary {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 10px;
+        text-align: left;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .summary-total {
+        font-weight: bold;
+        color: var(--primary);
+        border-top: 1px solid #cbd5e1;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    
+    .btn-confirm {
+        width: 100%;
+        background: var(--success);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 10px;
+        font-family: 'Prompt';
+        font-size: 18px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+    .btn-confirm:hover { background: #059669; }
+
+  </style>
+</head>
+<body>
+
+  <?!= include('header'); ?>
+
+  <div class="container">
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('checkin')"><i class="fas fa-map-marker-alt"></i> Check-in @ Booth</button>
+      <button class="tab-btn" onclick="openTab('order')"><i class="fas fa-cart-plus"></i> Take Order</button>
+    </div>
+
+    <div id="tab-checkin" class="tab-content active">
+      <div class="card">
+        <h3><i class="fas fa-qrcode"></i> Scan for Booth Visit</h3>
+        <div class="scanner-ui">
+            <div class="scanner-box" id="reader-visit"></div>
+            <p style="margin-top: 20px; color: #64748b;">Scan customer's entry QR Code to record booth visit.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-order" class="tab-content">
+      <div class="card" style="text-align: left;">
+        <h3><i class="fas fa-file-invoice-dollar"></i> New Order</h3>
+        
+        <div class="form-group">
+            <label>Construction Item (รายการปลูกสร้าง)</label>
+            <input type="text" id="order-item" placeholder="e.g. Home Model X">
+        </div>
+        
+        <div class="form-group">
+            <label>Value (มูลค่าปลูกสร้าง)</label>
+            <input type="number" id="order-value" placeholder="Amount in THB">
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-action" onclick="initiateOrderScan(false)">
+                <i class="fas fa-qrcode"></i>
+                <span>No Coupon</span>
+                <small>Scan Entry QR</small>
+            </button>
+            <button class="btn-action" onclick="initiateOrderScan(true)">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Use Coupon</span>
+                <small>Scan Coupon QR (-10,000)</small>
+            </button>
+        </div>
+
+        <div id="order-scanner-container" style="display:none; margin-top: 20px;">
+             <div class="scanner-box" id="reader-order"></div>
+             <p style="text-align: center; color: #64748b; margin-top: 10px;">Scanning...</p>
+             <button onclick="cancelOrderScan()" style="width:100%; padding:10px; margin-top:10px; background:#e2e8f0; border:none; border-radius:8px; cursor:pointer;">Cancel Scan</button>
+        </div>
+
+        <div id="order-summary">
+            <h4>Order Summary</h4>
+            <div class="summary-row"><span>Customer:</span> <span id="sum-name">-</span></div>
+            <div class="summary-row"><span>Phone:</span> <span id="sum-phone">-</span></div>
+            <div class="summary-row"><span>Item:</span> <span id="sum-item">-</span></div>
+            <div class="summary-row"><span>Value:</span> <span id="sum-value">0</span></div>
+            <div class="summary-row" style="color: var(--success);"><span>Discount:</span> <span id="sum-discount">0</span></div>
+            <div class="summary-row summary-total"><span>Net Total:</span> <span id="sum-net">0</span></div>
+            
+            <button class="btn-confirm" onclick="confirmOrder()">Confirm Order</button>
+            <button onclick="resetOrder()" style="width:100%; padding:15px; margin-top:10px; background:#f1f5f9; border:none; border-radius:10px; color:#64748b; cursor:pointer;">Cancel</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script>
+    // Tab Switching Logic
+    function openTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabName).classList.add('active');
+      
+      // Find the button that called this function and add active class
+      // Since we don't pass 'this', we find by onclick attribute or text content
+      // A simpler way for your specific setup:
+      const buttons = document.querySelectorAll('.tab-btn');
+      if(tabName === 'checkin') buttons[0].classList.add('active');
+      else buttons[1].classList.add('active');
+
+      if(tabName === 'checkin') startVisitScanner();
+      else stopScanners();
+    }
+
+    // --- Scanner Variables ---
+    let visitScanner = null;
+    let orderScanner = null;
+    let isCouponOrder = false;
+    let currentOrderData = {};
+
+    // --- Visit Scanner Logic ---
+    function startVisitScanner() {
+        stopScanners(); // Ensure others are off
+        if (!visitScanner) {
+            visitScanner = new Html5QrcodeScanner("reader-visit", { fps: 10, qrbox: 250 });
+            visitScanner.render(onVisitScan);
+        }
+    }
+
+    function onVisitScan(decodedText) {
+        // Pause scanning
+        visitScanner.clear();
+        
+        Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
+        
+        google.script.run.withSuccessHandler(res => {
+            if(res.success) {
+                Swal.fire('Checked In!', `Customer: ${res.name}`, 'success').then(() => {
+                    startVisitScanner(); // Restart scanner
+                });
+            } else {
+                Swal.fire('Error', res.message, 'error').then(() => {
+                     startVisitScanner();
+                });
+            }
+        }).recordBoothVisit({ qr: decodedText });
+    }
+
+    // --- Order Logic ---
+    function initiateOrderScan(hasCoupon) {
+        const item = document.getElementById('order-item').value;
+        const value = document.getElementById('order-value').value;
+
+        if (!item || !value) {
+            Swal.fire('Missing Info', 'Please enter Item and Value first.', 'warning');
+            return;
+        }
+
+        isCouponOrder = hasCoupon;
+        document.getElementById('order-scanner-container').style.display = 'block';
+        document.querySelector('.action-buttons').style.display = 'none'; // Hide buttons
+        
+        startOrderScanner();
+    }
+
+    function startOrderScanner() {
+        if (!orderScanner) {
+            orderScanner = new Html5QrcodeScanner("reader-order", { fps: 10, qrbox: 250 });
+            orderScanner.render(onOrderScan);
+        }
+    }
+
+    function onOrderScan(decodedText) {
+        // Stop scanner temporarily
+        orderScanner.clear().then(() => {
+             document.getElementById('order-scanner-container').style.display = 'none';
+        });
+
+        Swal.fire({ title: 'Verifying...', didOpen: () => Swal.showLoading() });
+
+        google.script.run.withSuccessHandler(user => {
+            if(user.found) {
+                Swal.close();
+                showOrderSummary(user);
+            } else {
+                 Swal.fire('Not Found', 'User not found in registration database.', 'error').then(() => {
+                     cancelOrderScan(); // Reset UI
+                 });
+            }
+        }).findUserByQr(decodedText);
+    }
+
+    function showOrderSummary(user) {
+        const item = document.getElementById('order-item').value;
+        const value = parseInt(document.getElementById('order-value').value);
+        const discount = isCouponOrder ? 10000 : 0;
+        const net = value - discount;
+
+        currentOrderData = {
+            name: user.name,
+            phone: user.phone,
+            item: item,
+            value: value,
+            discount: discount,
+            net: net
+        };
+
+        // Populate Summary
+        document.getElementById('sum-name').innerText = user.name;
+        document.getElementById('sum-phone').innerText = user.phone;
+        document.getElementById('sum-item').innerText = item;
+        document.getElementById('sum-value').innerText = value.toLocaleString();
+        document.getElementById('sum-discount').innerText = discount.toLocaleString();
+        document.getElementById('sum-net').innerText = net.toLocaleString();
+
+        document.getElementById('order-summary').style.display = 'block';
+    }
+
+    function confirmOrder() {
+        Swal.fire({ title: 'Saving Order...', didOpen: () => Swal.showLoading() });
+        
+        google.script.run.withSuccessHandler(res => {
+            Swal.fire('Success', 'Order saved successfully!', 'success');
+            resetOrder();
+        }).saveOrder(currentOrderData);
+    }
+
+    function cancelOrderScan() {
+         if(orderScanner) {
+             orderScanner.clear().catch(e => console.log(e));
+             orderScanner = null;
+         }
+         document.getElementById('order-scanner-container').style.display = 'none';
+         document.querySelector('.action-buttons').style.display = 'grid';
+    }
+
+    function resetOrder() {
+        document.getElementById('order-item').value = '';
+        document.getElementById('order-value').value = '';
+        document.getElementById('order-summary').style.display = 'none';
+        document.querySelector('.action-buttons').style.display = 'grid';
+        currentOrderData = {};
+        cancelOrderScan();
+    }
+
+    function stopScanners() {
+        if (visitScanner) {
+            visitScanner.clear().catch(e => console.log(e));
+            visitScanner = null;
+        }
+        if (orderScanner) {
+            orderScanner.clear().catch(e => console.log(e));
+            orderScanner = null;
+        }
+    }
+
+    // Initialize
+    openTab('checkin'); 
+
+  </script>
+</body>
+</html>
