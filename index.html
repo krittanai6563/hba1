@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Focus 2026 Command Center</title>
+  
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    :root {
+      --primary-dark: #0f172a; 
+      --primary: #1e40af; 
+      --primary-light: #3b82f6; 
+      --success: #10b981; 
+      --warning: #f59e0b; 
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #334155;
+      --shadow-soft: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: 'Sarabun', sans-serif;
+      margin: 0; padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Top Bar */
+    .navbar {
+      background: white;
+      padding: 15px 30px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.05);
+      position: sticky; top: 0; z-index: 1000;
+    }
+    .brand h1 { margin: 0; font-family: 'Prompt'; color: var(--primary-dark); font-size: 22px; }
+    .brand h1 span { color: var(--primary-light); font-weight: 300; }
+    
+    .btn-scan {
+      background: var(--primary); color: white; border: none; padding: 10px 25px;
+      border-radius: 50px; font-family: 'Prompt'; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3); transition: all 0.2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-scan:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    /* Dashboard Layout */
+    .container {
+      width: 100%;
+      padding: 25px 30px;
+      max-width: 1920px;
+      margin: 0 auto;
+    }
+
+    /* Scorecards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      border-left: 5px solid var(--primary);
+    }
+    .stat-card.success { border-left-color: var(--success); }
+    .stat-card.warning { border-left-color: var(--warning); }
+    
+    .stat-title { font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; }
+    .stat-value { font-size: 36px; font-weight: 700; color: #1e293b; margin: 5px 0; font-family: 'Prompt'; }
+    .stat-sub { font-size: 13px; color: #94a3b8; }
+
+    /* Charts Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .chart-panel {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: var(--shadow-soft);
+      height: 400px;
+      display: flex; flex-direction: column;
+    }
+    .panel-header {
+      font-family: 'Prompt'; font-size: 18px; color: #1e293b; font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .chart-wrapper { flex-grow: 1; position: relative; width: 100%; overflow: hidden; }
+
+    /* Bottom Grid */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    /* Table Section (Updated with Search) */
+    .table-section {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 0;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    .table-header { 
+      padding: 20px 25px; border-bottom: 1px solid #f1f5f9; background: #fff; 
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+    }
+    
+    .search-box {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: 1px solid #e2e8f0;
+      border-radius: 50px;
+      font-family: 'Sarabun';
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-box input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+    .table-scroll { max-height: 600px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 15px 25px; color: #64748b; font-size: 12px; text-transform: uppercase; background: #f8fafc; position: sticky; top: 0; z-index: 10; font-weight: 600; }
+    td { padding: 15px 25px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    tr:last-child td { border-bottom: none; }
+    
+    .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-ok { background: #dcfce7; color: #166534; }
+    .badge-wait { background: #f1f5f9; color: #475569; }
+
+    /* --- ดีไซน์ Grid เดิม (แถวแรก: Trend และ Channel) --- */
+.dashboard-grid { 
+  display: grid; 
+  grid-template-columns: 2fr 1fr; 
+  gap: 20px; 
+  margin-bottom: 25px; 
+}
+
+/* --- ดีไซน์ Grid แถวกลางและล่าง (ปรับให้ยืดหยุ่นไม่บีบกัน) --- */
+.bottom-grid { 
+  display: grid; 
+  /* ปรับจาก 1fr 1fr 1fr เป็นแบบยืดหยุ่น (minmax) */
+  /* หากพื้นที่น้อยกว่า 350px กราฟจะตกลงมาแถวใหม่เองโดยอัตโนมัติ */
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+  gap: 20px; 
+  margin-bottom: 25px; 
+}
+
+/* --- ปรับแต่ง Panel กราฟให้ดูสวยงามขึ้น (คงเดิมแต่เพิ่มระยะห่าง) --- */
+.chart-panel {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: var(--shadow-soft);
+  height: 400px; /* ความสูงมาตรฐานเท่ากันทุกตัว */
+  display: flex; 
+  flex-direction: column;
+}
+
+/* เพิ่ม CSS สำหรับกราฟวัตถุประสงค์ที่อยู่ตรงกลาง (ถ้ามี) */
+.full-width-panel {
+  margin-bottom: 25px;
+}
+
+/* ปรับแต่ง Filter Bar ให้ชิดขวาตามที่คุณต้องการ */
+.filter-wrapper { 
+  display: flex; 
+  justify-content: flex-end; 
+  margin-bottom: 25px; 
+}
+
+.filter-bar { 
+  display: flex; 
+  align-items: flex-end; 
+  gap: 10px; 
+  background: white; 
+  padding: 15px; 
+  border-radius: 12px; 
+  box-shadow: var(--shadow-soft); 
+}
+
+
+.filter-wrapper { 
+  display: flex; 
+  justify-content: flex-end; /* ดันไปชิดขวา */
+  margin-bottom: 25px; 
+}
+
+/* กล่อง Filter Bar */
+.filter-bar { 
+  display: flex; 
+  align-items: flex-end; /* ให้ปุ่มกับช่องกรอกวางระนาบเดียวกันด้านล่าง */
+  gap: 12px; 
+  background: var(--bg-card); 
+  padding: 18px 25px; 
+  border-radius: 12px; 
+  box-shadow: var(--shadow-soft);
+  border: 1px solid #f1f5f9;
+}
+
+/* กลุ่ม Input (Label + Input) */
+.filter-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+}
+
+.filter-group label { 
+  font-size: 11px; 
+  font-weight: 700; 
+  color: #64748b; 
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-group input { 
+  padding: 8px 12px; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 8px; 
+  font-family: 'Sarabun', sans-serif;
+  font-size: 14px;
+  outline: none;
+  background-color: #f8fafc;
+  transition: all 0.2s;
+  color: var(--text-main);
+}
+
+.filter-group input:focus { 
+  border-color: var(--primary-light); 
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); 
+}
+
+/* ปุ่มกรองข้อมูล (สีน้ำเงินตามธีมหลัก) */
+.btn-filter { 
+  background: var(--primary); 
+  color: white; 
+  border: none; 
+  padding: 9px 20px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-family: 'Prompt'; 
+  font-size: 14px; 
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-filter:hover { 
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* ปุ่มล้างค่า (สีเทาอ่อน) */
+.btn-reset { 
+  background: #f1f5f9; 
+  color: #475569; 
+  border: none; 
+  padding: 9px 20px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-family: 'Prompt'; 
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover { 
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.nav-menu-center {
+  display: flex;
+  gap: 10px;
+  margin: 0 auto 0 40px;
+}
+
+.nav-item {
+  font-family: 'Prompt', sans-serif;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #64748b;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-item:hover { background: #f1f5f9; }
+
+.nav-item.active {
+  background: #eff6ff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ตกแต่งหน้าลงทะเบียนเบอร์โทร */
+.reg-box {
+  max-width: 500px;
+  margin: 60px auto;
+  padding: 40px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+
+    /* Responsive */
+    @media (max-width: 1200px) { .bottom-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { 
+      .dashboard-grid, .bottom-grid { grid-template-columns: 1fr; }
+      .chart-panel { height: 350px; }
+      .table-header { flex-direction: column; align-items: flex-start; }
+      .search-box { max-width: 100%; }
+    }
+
+    /* Modal */
+    #scanner-overlay, #result-popup { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      z-index: 2000; display: none; align-items: center; justify-content: center;
+    }
+    #scanner-overlay { background: rgba(15, 23, 42, 0.95); flex-direction: column; }
+    #result-popup { background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+    
+    .scanner-box { width: 90%; max-width: 350px; border: 4px solid var(--primary-light); border-radius: 20px; overflow: hidden; position: relative; }
+    .close-modal { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; }
+    
+    .popup-content { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popUp 0.3s ease; }
+    @keyframes popUp { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+    @media (max-width: 640px) {
+  .filter-wrapper { justify-content: center; }
+  .filter-bar { width: 100%; flex-direction: column; align-items: stretch; }
+}
+  </style>
+
+</head>
+<body>
+
+  <?!= include('header'); ?>
+
+  <div class="container">
+
+  <div class="filter-wrapper">
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label><i class="far fa-calendar-alt"></i> เลือกวันที่ (วันเดียว หรือ เป็นช่วง)</label>
+      <input type="text" id="datePicker" placeholder="คลิกเพื่อเลือกวันที่..." readonly>
+    </div>
+    <button class="btn-filter" onclick="loadDashboard()">กรองข้อมูล</button>
+    <button class="btn-reset" onclick="resetFilter()">ล้างค่า</button>
+  </div>
+</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">ผู้ลงทะเบียนทั้งหมด</div>
+        <div class="stat-value" id="val-total">-</div>
+        <div class="stat-sub"><i class="fas fa-arrow-up"></i> Real-time Update</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-title">เข้างานแล้ว</div>
+        <div class="stat-value" id="val-checkin" style="color:var(--success)">-</div>
+        <div class="stat-sub" style="color:var(--success)"><span id="val-percent">0</span>% ของยอดรวม</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-title">รอดำเนินการ</div>
+        <div class="stat-value" id="val-waiting" style="color:var(--warning)">-</div>
+        <div class="stat-sub">ยังไม่มาแสดงตัว</div>
+      </div>
+      <div class="stat-card" style="border-left-color: var(--primary-light);">
+        <div class="stat-title">Hot Leads (3 เดือน)</div>
+        <div class="stat-value" id="val-hot">-</div>
+        <div class="stat-sub">กลุ่มลูกค้าเร่งด่วน</div>
+      </div>
+    </div>
+
+   <div class="dashboard-grid">
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-chart-line"></i> แนวโน้มการลงทะเบียน (Daily Trend)</span></div>
+        <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-wallet"></i> งบประมาณก่อสร้าง</span></div>
+        <div class="chart-wrapper"><canvas id="budgetChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-bullseye"></i> วัตถุประสงค์ในการมางาน</span></div>
+        <div class="chart-wrapper"><canvas id="purposeChart"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-bullhorn"></i> ช่องทางการรับรู้</span></div>
+        <div class="chart-wrapper"><canvas id="channelChart"></canvas></div>
+      </div>
+    </div>
+    <div class="bottom-grid">
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-hourglass-half"></i> ระยะเวลาตัดสินใจ</span></div>
+        <div class="chart-wrapper"><canvas id="decisionChart"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-ruler-combined"></i> พื้นที่ใช้สอย</span></div>
+        <div class="chart-wrapper"><canvas id="sizeChart"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-header"><span><i class="fas fa-users"></i> ช่วงอายุ</span></div>
+        <div class="chart-wrapper"><canvas id="ageChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <div style="font-family:'Prompt'; font-size:16px; font-weight:600;"><i class="fas fa-list"></i> รายชื่อผู้ลงทะเบียนทั้งหมด</div>
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="ค้นหาชื่อ หรือ เบอร์โทร...">
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table id="recentTable">
+          <thead>
+            <tr>
+              <th width="35%">ชื่อ - นามสกุล</th>
+              <th width="25%">เบอร์โทรศัพท์</th>
+              <th width="20%">สถานะ</th>
+              <th width="20%">วัน/เวลา</th>
+            </tr>
+          </thead>
+          <tbody><tr><td colspan="4" style="text-align:center; padding:30px; color:#aaa;">กำลังโหลดข้อมูล...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="scanner-overlay">
+    <i class="fas fa-times close-modal" onclick="closeScanner()"></i>
+    <div style="color:white; font-family:'Prompt'; font-size:24px; margin-bottom:20px;">สแกน QR Code</div>
+    <div class="scanner-box"><div id="reader"></div></div>
+  </div>
+
+  <div id="result-popup">
+    <div class="popup-content">
+      <div id="res-icon" style="font-size:60px; margin-bottom:15px;"></div>
+      <h2 id="res-title" style="margin:0; font-family:'Prompt'; color:var(--primary-dark);"></h2>
+      <p id="res-desc" style="color:#64748b; margin:10px 0 20px 0;"></p>
+      <img id="res-coupon" style="width:100%; border-radius:10px; display:none; border:2px dashed var(--primary);">
+      <button onclick="resetScanner()" style="background:var(--primary-dark); color:white; border:none; padding:12px; width:100%; border-radius:10px; margin-top:20px; font-size:16px; cursor:pointer;">ตกลง</button>
+    </div>
+  </div>
+
+<script>
+  // --- Global Variables ---
+  let myCharts = {}; 
+  let fp; // สำหรับ Flatpickr
+  const colors = { 
+    blue: ['#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'], 
+    mix: ['#1e40af', '#10b981', '#f59e0b', '#ef4444', '#64748b'] 
+  };
+
+  // --- 1. Initialization (เมื่อเปิดหน้าเว็บ) ---
+  window.onload = function() {
+    // ตั้งค่า Flatpickr แบบเลือกช่วงในช่องเดียว
+    fp = flatpickr("#datePicker", {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      locale: { rangeSeparator: " ถึง " },
+      onClose: function(selectedDates) {
+        if (selectedDates.length !== 1) { // ถ้าเลือกครบช่วงหรือเคลียร์ค่า ให้โหลดข้อมูล
+          loadDashboard();
+        }
+      }
+    });
+    
+    loadDashboard(); // โหลดข้อมูลครั้งแรก
+  };
+
+  // --- 2. Dashboard Logic ---
+  function loadDashboard() {
+    const dateValues = fp ? fp.selectedDates : [];
+    let filters = { startDate: null, endDate: null };
+
+    if (dateValues.length > 0) {
+      // ปรับ Format วันที่ให้เป็น Local Date String (YYYY-MM-DD)
+      const offset = dateValues[0].getTimezoneOffset() * 60000;
+      filters.startDate = new Date(dateValues[0].getTime() - offset).toISOString().split('T')[0];
+      
+      if (dateValues.length > 1) {
+        filters.endDate = new Date(dateValues[1].getTime() - offset).toISOString().split('T')[0];
+      } else {
+        filters.endDate = filters.startDate; // กรณีเลือกวันเดียว
+      }
+    }
+
+    // แสดงสถานะ Loading ในตาราง
+    const tbody = document.querySelector('#recentTable tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#aaa;">กำลังกรองข้อมูล...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(renderDashboard)
+      .withFailureHandler(function(err){ alert("Error: " + err); })
+      .getDashboardData(filters);
+  }
+
+  function resetFilter() {
+    if (fp) fp.clear();
+    loadDashboard();
+  }
+
+  // --- 3. Rendering Logic ---
+  function renderDashboard(data) {
+    // Update Scorecards
+    document.getElementById('val-total').innerText = data.total_entries.toLocaleString();
+    document.getElementById('val-checkin').innerText = data.checked_in.toLocaleString();
+    document.getElementById('val-waiting').innerText = (data.total_entries - data.checked_in).toLocaleString();
+    
+    let percent = data.total_entries > 0 ? ((data.checked_in / data.total_entries) * 100).toFixed(1) : 0;
+    document.getElementById('val-percent').innerText = percent;
+
+    let hotLeads = (data.decision["ภายใน 3 เดือน"] || 0) + (data.decision["ภายใน 6 เดือน"] || 0);
+    document.getElementById('val-hot').innerText = hotLeads.toLocaleString();
+
+    // Render Charts
+    createLineChart('trendChart', data.daily_trend, 'ยอดลงทะเบียน');
+    createBarChart('budgetChart', data.budget, true);
+    createDoughnutChart('decisionChart', data.decision);
+    createPieChart('sizeChart', data.project_size);
+    createBarChart('ageChart', data.demographics, false);
+    createBarChart('purposeChart', data.purpose, true);
+
+    // Custom Channel Chart with Colors
+    const rawChannels = Object.keys(data.channels);
+    const channelValues = Object.values(data.channels);
+    createBarChart('channelChart', Object.fromEntries(rawChannels.map((k, i) => [k, channelValues[i]])), true);
+
+    // Update Table
+    const tbody = document.querySelector('#recentTable tbody');
+    tbody.innerHTML = '';
+    if (data.registrant_list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td></tr>';
+      return;
+    }
+    
+    data.registrant_list.forEach(user => {
+      let isChecked = user.status.includes('มาแล้ว');
+      let badge = isChecked ? 
+        `<span class="badge badge-ok"><i class="fas fa-check"></i> ${user.status}</span>` : 
+        `<span class="badge badge-wait"><i class="far fa-clock"></i> ${user.status}</span>`;
+      
+      tbody.innerHTML += `<tr>
+        <td><b>${user.name}</b></td>
+        <td style="font-family:monospace;">${user.phone}</td>
+        <td>${badge}</td>
+        <td style="color:#64748b; font-size:12px;">${user.timestamp}</td>
+      </tr>`;
+    });
+  }
+
+  // --- 4. Helper Functions (Chart.js) ---
+  function createLineChart(id, dataObj, label) {
+    const ctx = document.getElementById(id).getContext('2d');
+    if (myCharts[id]) myCharts[id].destroy();
+    const sortedKeys = Object.keys(dataObj).sort((a,b) => new Date(a) - new Date(b));
+    myCharts[id] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: sortedKeys,
+        datasets: [{
+          label: label,
+          data: sortedKeys.map(k => dataObj[k]),
+          borderColor: '#1e40af',
+          backgroundColor: 'rgba(30, 64, 175, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function createBarChart(id, dataObj, horizontal) {
+    const ctx = document.getElementById(id).getContext('2d');
+    if (myCharts[id]) myCharts[id].destroy();
+    myCharts[id] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(dataObj),
+        datasets: [{
+          data: Object.values(dataObj),
+          backgroundColor: '#3b82f6',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: horizontal ? 'y' : 'x',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function createDoughnutChart(id, dataObj) {
+    const ctx = document.getElementById(id).getContext('2d');
+    if (myCharts[id]) myCharts[id].destroy();
+    myCharts[id] = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(dataObj),
+        datasets: [{ data: Object.values(dataObj), backgroundColor: colors.mix }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } } }
+    });
+  }
+
+  function createPieChart(id, dataObj) {
+    const ctx = document.getElementById(id).getContext('2d');
+    if (myCharts[id]) myCharts[id].destroy();
+    myCharts[id] = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: Object.keys(dataObj),
+        datasets: [{ data: Object.values(dataObj), backgroundColor: colors.blue }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } } }
+    });
+  }
+
+  // --- 5. Scanner Logic ---
+  let html5QrcodeScanner, isProcessing = false;
+  function openScanner() {
+    document.getElementById('scanner-overlay').style.display = 'flex';
+    if (!html5QrcodeScanner) {
+      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250, aspectRatio: 1.0 });
+      html5QrcodeScanner.render(onScanSuccess);
+    }
+  }
+  function closeScanner() {
+    document.getElementById('scanner-overlay').style.display = 'none';
+    if (html5QrcodeScanner) {
+      html5QrcodeScanner.clear().then(() => { html5QrcodeScanner = null; });
+    }
+  }
+  function onScanSuccess(decodedText) {
+    if (isProcessing) return;
+    isProcessing = true;
+    google.script.run
+      .withSuccessHandler(showResult)
+      .withFailureHandler(function(e){ alert(e); isProcessing = false; })
+      .processCheckIn(decodedText);
+  }
+  function showResult(res) {
+    document.getElementById('scanner-overlay').style.display = 'none';
+    document.getElementById('result-popup').style.display = 'flex';
+    const icon = document.getElementById('res-icon'), title = document.getElementById('res-title'), desc = document.getElementById('res-desc'), coupon = document.getElementById('res-coupon');
+    if (res.success) {
+      icon.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981;"></i>';
+      title.innerText = "ลงทะเบียนสำเร็จ";
+      desc.innerText = "ยินดีต้อนรับ คุณ " + res.name;
+      if (res.couponUrl) { coupon.src = res.couponUrl; coupon.style.display = 'block'; }
+      loadDashboard();
+    } else {
+      icon.innerHTML = '<i class="fas fa-times-circle" style="color:#ef4444;"></i>';
+      title.innerText = "ไม่สำเร็จ";
+      desc.innerText = res.message;
+      coupon.style.display = 'none';
+    }
+  }
+  function resetScanner() { isProcessing = false; document.getElementById('result-popup').style.display = 'none'; }
+  
+  function filterTable() {
+    let input = document.getElementById("searchInput").value.toUpperCase();
+    let rows = document.querySelector("#recentTable tbody").getElementsByTagName("tr");
+    for (let row of rows) {
+      let text = row.textContent || row.innerText;
+      row.style.display = text.toUpperCase().indexOf(input) > -1 ? "" : "none";
+    }
+  }
+
+  function switchPage(page) {
+  // 1. เลือก Element หน้าต่างๆ
+  const dashPage = document.getElementById('dashboard-page');
+  const checkinPage = document.getElementById('checkin-page');
+  
+  // 2. เลือก Element ปุ่มเมนู
+  const menuDash = document.getElementById('menu-dashboard');
+  const menuCheckin = document.getElementById('menu-checkin');
+
+  // 3. ตรรกะการสลับหน้า
+  if (page === 'dashboard') {
+    // แสดง Dashboard / ซ่อน Check-in
+    dashPage.style.display = 'block';
+    checkinPage.style.display = 'none';
+    
+    // สลับสถานะปุ่ม (Active)
+    menuDash.classList.add('active');
+    menuCheckin.classList.remove('active');
+    
+    // โหลดข้อมูล Dashboard ใหม่ทุกครั้งที่กลับมาหน้าหลัก
+    if (typeof loadDashboard === "function") loadDashboard();
+    
+  } else if (page === 'checkin') {
+    // ซ่อน Dashboard / แสดง Check-in
+    dashPage.style.display = 'none';
+    checkinPage.style.display = 'block';
+    
+    // สลับสถานะปุ่ม (Active)
+    menuDash.classList.remove('active');
+    menuCheckin.classList.add('active');
+  }
+}
+</script>
+</body>
+</html>
