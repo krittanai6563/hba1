@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบเช็คอิน - Home Focus 2026</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;       /* ปรับสีน้ำเงินให้สดขึ้น */
+      --primary-dark: #1e40af;
+      --bg-body: #f1f5f9;
+      --text-main: #1e293b;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --radius: 12px;
+    }
+
+    body { font-family: 'Sarabun', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding-bottom: 80px; }
+    
+    /* Navbar Style */
+    .navbar { background: white; padding: 15px 30px; display: flex; box-shadow: var(--shadow-sm); align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
+    .brand h1 { margin: 0; font-family: 'Prompt'; color: var(--text-main); font-size: 22px; font-weight: 700; }
+    .brand span { color: var(--primary); }
+    
+    .nav-item { text-decoration: none; color: #64748b; padding: 10px 20px; display: flex; gap: 8px; align-items: center; border-radius: 50px; transition: 0.2s; font-family: 'Prompt'; font-size: 14px; }
+    .nav-item.active { background: #eff6ff; color: var(--primary); font-weight: 600; }
+    .nav-item:hover { background: #f8fafc; color: var(--primary-dark); }
+
+    /* Container */
+    .container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+
+    /* Tabs System */
+    .tabs { display: flex; gap: 15px; margin-bottom: 30px; justify-content: center; background: #e2e8f0; padding: 5px; border-radius: 50px; width: fit-content; margin-left: auto; margin-right: auto; }
+    .tab-btn {
+      padding: 10px 30px; border: none; background: transparent; border-radius: 40px;
+      font-family: 'Prompt'; cursor: pointer; font-size: 15px; color: #64748b; transition: all 0.3s ease; font-weight: 500;
+    }
+    .tab-btn.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); font-weight: 700; }
+    
+    .tab-content { display: none; animation: slideUp 0.4s ease-out; }
+    .tab-content.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Form Styles */
+    .card { background: white; padding: 40px; border-radius: 24px; box-shadow: var(--shadow-md); border: 1px solid white; }
+    h3 { font-family: 'Prompt'; color: var(--text-main); margin-top: 0; padding-bottom: 15px; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    h3 i { color: var(--primary); }
+    
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #475569; }
+    input[type="text"], input[type="email"], input[type="tel"], select {
+      width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: var(--radius);
+      font-family: 'Sarabun'; font-size: 16px; outline: none; box-sizing: border-box; transition: all 0.2s; background: #f8fafc; color: #334155;
+    }
+    input:focus, select:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+    ::placeholder { color: #94a3b8; }
+
+    /* Grid Layout */
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 600px) { .row-2 { grid-template-columns: 1fr; } }
+
+    /* Checkbox Group */
+    .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .checkbox-item { 
+      display: flex; align-items: center; gap: 10px; border: 2px solid #e2e8f0; padding: 12px 15px; 
+      border-radius: var(--radius); cursor: pointer; transition: 0.2s; background: #fff; font-size: 14px;
+    }
+    .checkbox-item:hover { border-color: #cbd5e1; background: #f8fafc; }
+    .checkbox-item input:checked + span { font-weight: bold; color: var(--primary); } 
+    /* หมายเหตุ: CSS นี้จะทำงานสมบูรณ์ถ้าแก้ HTML ให้ label ครอบ text อีกที แต่แบบเดิมก็สวยพอใช้ได้ */
+
+    /* Button */
+    .btn-submit {
+      width: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white; border: none; padding: 16px; border-radius: 50px; 
+      font-family: 'Prompt'; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 30px;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: transform 0.2s;
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+
+    /* --- BEAUTIFUL SCANNER UI --- */
+    .scanner-ui { text-align: center; padding: 10px; }
+    
+    .scanner-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 350px;
+        height: 350px;
+        margin: 0 auto;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 8px solid white;
+        background: #000;
+    }
+
+    /* Laser Line Animation */
+    .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        background: #ef4444;
+        box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        animation: scanAnim 2.5s infinite linear;
+        opacity: 0.8;
+    }
+    @keyframes scanAnim {
+        0% { top: 0%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+    }
+
+    #reader { width: 100%; height: 100%; object-fit: cover; }
+    /* ซ่อนปุ่มต่างๆ ของ Library Scanner ที่ดูรก */
+    #reader__dashboard_section_csr span, #reader__dashboard_section_swaplink { display: none !important; }
+    
+    /* Manual Input Styles (Modern) */
+    .manual-input-box {
+        margin-top: 40px;
+        position: relative;
+        text-align: center;
+    }
+    .or-divider {
+        display: inline-block;
+        background: white;
+        padding: 0 15px;
+        color: #94a3b8;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+        font-family: 'Prompt';
+    }
+    .or-divider::before {
+        content: ''; position: absolute; top: 50%; left: -100px; width: 80px; height: 1px; background: #e2e8f0; z-index: -1;
+    }
+    .or-divider::after {
+        content: ''; position: absolute; top: 50%; right: -100px; width: 80px; height: 1px; background: #e2e8f0; z-index: -1;
+    }
+
+    .input-group-manual { 
+        display: flex; gap: 10px; margin-top: 20px; 
+        background: #f8fafc; padding: 8px; border-radius: 16px; border: 1px solid #e2e8f0;
+    }
+    .input-group-manual input { 
+        font-size: 20px; letter-spacing: 2px; text-align: center; font-family: monospace; 
+        border: none; background: transparent; box-shadow: none; font-weight: bold; color: var(--primary);
+    }
+    .input-group-manual input:focus { box-shadow: none; }
+    
+    .btn-check-manual { 
+        background: var(--primary); color: white; border: none; padding: 0 25px; 
+        border-radius: 12px; cursor: pointer; white-space: nowrap; font-family: 'Prompt';
+        transition: 0.2s;
+    }
+    .btn-check-manual:hover { background: var(--primary-dark); }
+
+  </style>
+</head>
+<body>
+
+  <?!= include('header'); ?>
+
+  <div class="container">
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('scan')"><i class="fas fa-qrcode"></i> สแกน QR</button>
+      <button class="tab-btn" onclick="openTab('form')"><i class="fas fa-edit"></i> Walk-in</button>
+    </div>
+
+    <div id="tab-scan" class="tab-content active card" style="text-align: center;">
+      <h3 style="justify-content: center; border-bottom: none; margin-bottom: 10px;">
+        สแกน QR Code เข้างาน
+      </h3>
+      <p style="color: #64748b; margin-bottom: 30px; font-size: 14px;">นำ QR Code มาวางไว้ในกรอบเพื่อเช็คอินอัตโนมัติ</p>
+      
+      <div class="scanner-wrapper">
+         <div class="scan-line"></div>
+         <div id="reader"></div>
+      </div>
+       
+      <div class="manual-input-box">
+          <div class="or-divider">หรือ ระบุเบอร์โทรศัพท์</div>
+          <div class="input-group-manual">
+              <input type="tel" id="manualPhone" placeholder="08XXXXXXXX" onkeypress="handleEnter(event)" maxlength="10">
+              <button class="btn-check-manual" onclick="submitManualCheckIn()">
+                  <i class="fas fa-search"></i>
+              </button>
+          </div>
+      </div>
+    </div>
+
+    <div id="tab-form" class="tab-content card">
+      <form id="walkinForm" onsubmit="return submitWalkIn(event)">
+        
+        <h3><i class="fas fa-user-circle"></i> ข้อมูลส่วนตัว</h3>
+        
+        <div class="form-group">
+          <label>ชื่อ - นามสกุล</label>
+          <input type="text" name="ชื่อ - นามสกุล" placeholder="ระบุชื่อจริงและนามสกุล" required>
+        </div>
+
+        <div class="form-group">
+          <label>อีเมล</label>
+          <input type="email" name="อีเมล" placeholder="example@email.com">
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label>เบอร์โทรศัพท์</label>
+            <input type="tel" name="เบอร์โทรศัพท์" placeholder="08XXXXXXXX" required pattern="[0-9]{9,10}">
+          </div>
+          <div class="form-group">
+            <label>อายุ</label>
+            <select name="อายุ">
+              <option value="">-- เลือกช่วงอายุ --</option>
+              <option value="ต่ำกว่า 30 ปี">ต่ำกว่า 30 ปี</option>
+              <option value="31 - 40 ปี">31 - 40 ปี</option>
+              <option value="41 - 50 ปี">41 - 50 ปี</option>
+              <option value="51 ปีขึ้นไป">51 ปีขึ้นไป</option>
+            </select>
+          </div>
+        </div>
+
+        <h3><i class="fas fa-bullhorn"></i> ช่องทางการรับรู้</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="channel" value="Facebook"> Facebook</label>
+          <label class="checkbox-item"><input type="checkbox" name="channel" value="Google"> Google</label>
+          <label class="checkbox-item"><input type="checkbox" name="channel" value="Youtube"> Youtube</label>
+          <label class="checkbox-item"><input type="checkbox" name="channel" value="Website"> Website</label>
+          <label class="checkbox-item"><input type="checkbox" name="channel" value="Line"> Line</label>
+          <label class="checkbox-item"><input type="checkbox" name="channel" value="TikTok"> TikTok</label>
+          
+          <label class="checkbox-item" style="background: #fffbeb; border-color: #fcd34d;">
+            <input type="checkbox" id="chk-offline" name="channel" value="สื่ออื่นๆ" onchange="toggleOffline(this)"> 
+            สื่ออื่นๆ
+          </label>
+        </div>
+
+        <div id="offline-option-box" style="display: none; margin-top: 15px; padding: 20px; background: #fffbeb; border-radius: 16px; border: 1px dashed #fcd34d; animation: slideUp 0.3s;">
+            <label style="color: #b45309;"><i class="fas fa-broadcast-tower"></i> โปรดระบุสื่อที่ท่านพบเห็น:</label>
+            <select id="offline-select" class="form-control" style="width: 100%; margin-top: 5px; border-color: #fcd34d;">
+                <option value="">-- กรุณาเลือก --</option>
+                <option value="วิทยุ">วิทยุ</option>
+                <option value="โทรทัศน์">โทรทัศน์</option>
+                <option value="ป้ายบิลบอร์ด">ป้ายบิลบอร์ด</option>
+            </select>
+        </div>
+        <br>
+
+        <h3><i class="fas fa-home"></i> ความต้องการเรื่องบ้าน</h3>
+        
+        <div class="row-2">
+          <div class="form-group">
+            <label>ภูมิภาคที่ต้องการสร้างบ้าน</label>
+            <select name="ภูมิภาคที่ต้องการสร้างบ้าน">
+              <option value="">-- เลือกภูมิภาค --</option>
+              <option value="กรุงเทพฯ และปริมณฑล">กรุงเทพฯ และปริมณฑล</option>
+              <option value="ภาคกลาง">ภาคกลาง</option>
+              <option value="ภาคเหนือ">ภาคเหนือ</option>
+              <option value="ภาคตะวันออกเฉียงเหนือ">ภาคตะวันออกเฉียงเหนือ</option>
+              <option value="ภาคใต้">ภาคใต้</option>
+              <option value="ภาคตะวันออก">ภาคตะวันออก</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>จำนวนชั้น</label>
+            <select name="จำนวนชั้น">
+              <option value="">-- เลือกจำนวนชั้น --</option>
+              <option value="1 ชั้น">1 ชั้น</option>
+              <option value="2 ชั้น">2 ชั้น</option>
+              <option value="3 ชั้นขึ้นไป">3 ชั้นขึ้นไป</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label>พื้นที่ใช้สอย (ตร.ม)</label>
+            <select name="พื้นที่ใช้สอย (ตร.ม)">
+              <option value="">-- ระบุพื้นที่ใช้สอย --</option>
+              <option value="น้อยกว่า 100 ตร.ม.">น้อยกว่า 100 ตร.ม.</option>
+              <option value="101 - 200 ตร.ม.">101 - 200 ตร.ม.</option>
+              <option value="201 - 300 ตร.ม.">201 - 300 ตร.ม.</option>
+              <option value="มากกว่า 300 ตร.ม.">มากกว่า 300 ตร.ม.</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>งบประมาณการก่อสร้าง</label>
+            <select name="งบประมาณการก่อสร้าง">
+              <option value="">-- ระบุงบประมาณ --</option>
+              <option value="ไม่เกิน 2 ล้านบาท">ไม่เกิน 2 ล้านบาท</option>
+              <option value="2 - 5 ล้านบาท">2 - 5 ล้านบาท</option>
+              <option value="5 - 10 ล้านบาท">5 - 10 ล้านบาท</option>
+              <option value="10 ล้านบาทขึ้นไป">10 ล้านบาทขึ้นไป</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label>วัตถุประสงค์ในการมางาน</label>
+            <select name="วัตถุประสงค์ในการมางาน">
+              <option value="">-- ระบุวัตถุประสงค์ --</option>
+              <option value="มองหาบริษัทรับสร้างบ้าน">มองหาบริษัทรับสร้างบ้าน</option>
+              <option value="ดูแบบบ้าน/หาไอเดีย">ดูแบบบ้าน/หาไอเดีย</option>
+              <option value="ปรึกษาสินเชื่อ">ปรึกษาสินเชื่อ</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ระยะเวลาการตัดสินใจ</label>
+            <select name="ระยะเวลาการตัดสินใจ">
+              <option value="">-- ระบุระยะเวลา --</option>
+              <option value="ภายใน 3 เดือน">ภายใน 3 เดือน</option>
+              <option value="ภายใน 6 เดือน">ภายใน 6 เดือน</option>
+              <option value="ภายใน 1 ปี">ภายใน 1 ปี</option>
+              <option value="ยังไม่มีกำหนด">ยังไม่มีกำหนด</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 12px; align-items: start; background: #f8fafc; padding: 15px; border-radius: 12px;">
+          <input type="checkbox" id="consent" required style="width: 20px; height: 20px; margin-top: 3px; accent-color: var(--primary);">
+          <label for="consent" style="font-weight: 400; font-size: 13px; color: #64748b; margin: 0; line-height: 1.6;">
+            ข้าพเจ้าได้อ่านและยอมรับ <a href="#" style="color: var(--primary); font-weight: 600;">นโยบายความเป็นส่วนตัว</a> และรวมถึงยินยอมให้ประมวลผลข้อมูลเพื่อนำเสนอข่าวสารและสิทธิประโยชน์ทางการตลาด
+          </label>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-check-circle"></i> ยืนยันการลงทะเบียน
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script>
+    // Tab Switching
+    function openTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabName).classList.add('active');
+      document.querySelector(`button[onclick="openTab('${tabName}')"]`).classList.add('active');
+
+      if(tabName === 'scan') startScanner();
+      else stopScanner();
+    }
+
+    // --- Scanner Logic ---
+    let html5QrcodeScanner = null;
+    function startScanner() {
+      if (!html5QrcodeScanner) {
+         // เพิ่ม config aspectRatio เพื่อให้กล้องดูเต็มกรอบมากขึ้น
+         html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250, aspectRatio: 1.0, showTorchButtonIfSupported: true });
+         html5QrcodeScanner.render(onScanSuccess);
+      }
+    }
+    function stopScanner() {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().then(() => { html5QrcodeScanner = null; });
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+       if(!decodedText) return;
+
+       Swal.fire({ title: 'กำลังตรวจสอบ...', didOpen: () => Swal.showLoading() });
+       
+       google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+              Swal.fire({
+                  icon: 'success',
+                  title: 'เช็คอินสำเร็จ',
+                  text: `ยินดีต้อนรับ คุณ ${res.name}`,
+                  timer: 2000,
+                  showConfirmButton: false,
+                  backdrop: `rgba(0,0,123,0.4)`
+              });
+              document.getElementById('manualPhone').value = "";
+          } else {
+              Swal.fire('ผิดพลาด', res.message, 'error');
+          }
+       }).processCheckIn(decodedText);
+    }
+
+    // --- Manual Input ---
+    function handleEnter(e) {
+        if (e.key === "Enter") {
+            submitManualCheckIn();
+        }
+    }
+
+    function submitManualCheckIn() {
+        const phone = document.getElementById('manualPhone').value.trim();
+        if (phone) {
+            onScanSuccess(phone); 
+        } else {
+            Swal.fire('แจ้งเตือน', 'กรุณาระบุเบอร์โทรศัพท์', 'warning');
+        }
+    }
+
+    // --- Form Submission Logic ---
+    function submitWalkIn(e) {
+      e.preventDefault();
+      
+      const btn = document.querySelector('.btn-submit');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
+
+      const form = document.getElementById('walkinForm');
+      const formData = new FormData(form);
+      let dataObj = {};
+      let channels = [];
+
+      formData.forEach((value, key) => {
+        if(key === 'channel') {
+            if (value === 'สื่ออื่นๆ') {
+                const offlineVal = document.getElementById('offline-select').value;
+                if (offlineVal) channels.push(offlineVal);
+                else channels.push(value);
+            } else {
+                channels.push(value);
+            }
+        } else {
+            dataObj[key] = value;
+        }
+      });
+      
+      dataObj['channel_checkbox'] = channels.join(', '); 
+      dataObj['form_name'] = 'Walk-in Registration';
+      dataObj['CheckInStatus'] = 'Checked-in';
+      dataObj['CheckInTime'] = new Date().toLocaleString('th-TH');
+
+      google.script.run.withSuccessHandler(function(response) {
+         btn.disabled = false;
+         btn.innerHTML = originalText;
+         Swal.fire({ icon: 'success', title: 'ลงทะเบียนสำเร็จ', text: 'บันทึกข้อมูลเรียบร้อยแล้ว', backdrop: `rgba(0,0,123,0.4)` });
+         form.reset();
+         document.getElementById('offline-option-box').style.display = 'none';
+      }).withFailureHandler(function(err) {
+         btn.disabled = false;
+         btn.innerHTML = originalText;
+         Swal.fire('เกิดข้อผิดพลาด', err.toString(), 'error');
+      }).insertToSheet(dataObj);
+    }
+
+    function toggleOffline(checkbox) {
+        const box = document.getElementById('offline-option-box');
+        const select = document.getElementById('offline-select');
+        
+        if (checkbox.checked) {
+            box.style.display = 'block'; select.required = true;
+        } else {
+            box.style.display = 'none'; select.value = ""; select.required = false;
+        }
+    }
+
+    startScanner();
+  </script>
+</body>
+</html>
